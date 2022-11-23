@@ -1,0 +1,218 @@
+﻿@using Microsoft.AspNetCore.Localization
+@using Microsoft.AspNetCore.Mvc.Localization
+@using System.Security.Claims
+@inject IConfiguration Configuration
+@inject IViewLocalizer Localizer
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+@{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+}
+
+<style type="text/css">
+    .fc-event-title-container {
+        text-align: center;
+    }
+</style>
+
+@if (TempData["success"] != null)
+{
+    <div id="SuccessMessage" style="color: green">@Html.Encode(Html.TempData["success"])</div>
+}
+<div class="card bg-secondary mb-3">
+    <div class="card-header text-center text-white">
+        <b>@Localizer["Reservations"]</b>
+    </div>
+    <div class="card-body bg-light" id="calendar">
+
+        <style>
+            .calendar {
+                margin: 40px auto;
+                max-width: 1100px;
+                padding: 0 10px;
+            }
+        </style>
+
+        <script>
+            var calendar;
+            function configCalendar(calendarEl) {
+                var calendar = new FullCalendar.Calendar(calendarEl,
+                    {
+                        themeSystem: 'bootstrap5',
+                        schedulerLicenseKey: "GPL-My-Project-Is-Open-Source",
+                        locale: "@requestCulture.RequestCulture.UICulture.Name",
+                        timeZone: "@Configuration.GetSection("ReservationConfig")["TimeZone"]",
+                        initialView: "@Configuration.GetSection("ReservationConfig")["InitialView"]",
+                        weekends: @Configuration.GetSection("ReservationConfig")["Weekends"].ToLower(),
+                        dayHeaders: @Configuration.GetSection("ReservationConfig")["DayHeaders"].ToLower(),
+                        resourceAreaWidth: "15%",
+                        slotDuration: { days: 1 },
+                        slotLabelFormat: [
+                            { month: "long", year: "numeric" }, { weekday: "long", day: "numeric" }
+                        ],
+                        aspectRatio: 1.5,
+                        expandRows: @Configuration.GetSection("ReservationConfig")["ExpandRows"].ToLower(),
+                        height: "@Configuration.GetSection("ReservationConfig")["Height"]",
+                        headerToolbar: {
+                            left: 'today prev,next',
+                            center: 'title',
+                            right: 'resourceTimelineDay,resourceTimelineWeek,resourceTimelineMonth'
+                        },
+                        titleFormat: {
+                            month: "short",
+                            year: "numeric",
+                            day: "numeric",
+                            weekday: "short"
+                        },
+                        dateClick: function(info) {
+                            if (!info.jsEvent.target.classList.contains('fc-bg-event')) {
+                                $.ajax({
+                                    type: "POST",
+                                    url: "/Reservation/AddOrDeleteOnDateClick",
+                                    data: {
+                                        "resourceId": info.resource.id,
+                                        "start": info.dateStr
+                                    },
+                                    success: function() {
+                                        calendar.refetchEvents()
+                                    },
+                                    error: function(response) {
+                                        alert(`ERROR: ${response}`);
+                                    }
+                                });
+                            }
+                        },
+                        eventClick: function(info) {
+                            if (info.event.display != "background") {
+                                if (@User.IsInRole("Admin").ToString().ToLower() && (info.event.extendedProps.userId !== "@User.FindFirstValue(ClaimTypes.NameIdentifier)")) {
+                                    openReservationDeleteModal(info.event.id, info.event.title, info.event.extendedProps.date);
+                                }
+                                else
+                                {
+                                    $.ajax({
+                                        type: "POST",
+                                        url: "/Reservation/DeleteReservation",
+                                        data: {
+                                            "reservationId": info.event.id
+                                        },
+                                        success: function(response) {
+                                            if (response === true) {
+                                                calendar.refetchEvents();
+                                            }
+                                        },
+                                        error: function(response) {
+                                            alert(`ERROR: ${response}`);
+                                        }
+                                    });
+                                }
+                            }
+                        },
+                        resourceGroupField: "Name",
+                        resourcesInitiallyExpanded: @Configuration.GetSection("ReservationConfig")["ResourcesInitiallyExpanded"].ToLower(),
+                        resourceAreaHeaderContent: "@Localizer["Rooms"]",
+                        resources: {
+                            url: '/Reservation/FetchRooms',
+                            method: 'POST',
+                            failure: function() {
+                                alert('There was an error while fetching rooms!');
+                            }
+                        },
+                        resourceLabelDidMount: function(info) {
+                            if(info.resource.extendedProps.extraInfo) {
+
+                                var roomName = info.el.querySelector('.fc-datagrid-cell-main');
+                                var text = roomName.innerHTML;
+                                roomName.innerHTML = `<b>${text}</b>`;
+
+                                var tooltip = new bootstrap.Tooltip(roomName, {
+                                    title: info.resource.extendedProps.extraInfo,
+                                    placement: 'top',
+                                    trigger: 'hover',
+                                    container: 'body'
+                                });
+                            }
+                        },
+                        eventInteractive: true,
+                        events: {
+                            url: '/Reservation/FetchEvents',
+                            method: 'POST',
+                            textColor: "#000000",
+                            failure: function() {
+                                alert('There was an error while fetching events!');
+                            }
+                        },
+                        eventRender: function(event, element) {
+                            element.find('.fc-event-title-container').setAttribute("class", "text-center");
+                        }
+                    });
+
+                function refresh() {
+                    calendar.refetchEvents();
+                    setTimeout(refresh, @Configuration.GetSection("ReservationConfig")["RefreshAfterInMs"]);
+                }
+
+                if (@Configuration.GetSection("ReservationConfig")["AutomaticRefresh"].ToLower() || (@User.IsInRole("Admin").ToString().ToLower() && @Configuration.GetSection("ReservationConfig")["AutomaticRefreshAdminsOnly"].ToLower())) {
+                    refresh();
+                }
+                return calendar;
+            }
+
+            document.addEventListener('DOMContentLoaded',
+                () => {
+                    calendar = configCalendar(document.getElementById('calendar'));
+                    calendar.render();
+                });
+        </script>
+    </div>
+</div>
+
+<div class="modal fade" id="modal_DeleteReservation">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header with-border">
+                <h3 class="modal-title">@Localizer["Delete Reservation"]</h3>
+            </div>
+            <div class="modal-body">
+                <p><em id="modalText_DeleteReservation_UserName"></em> - <em id="modalText_DeleteReservation_Date"></em></p>
+                @Localizer["Do you really want to delete the reservation?"]
+            </div>
+            <div class="modal-footer">
+                <div class="input-group mb-3">
+                    <input name="reservationId" type="text" class="form-control" id="modalId_DeleteReservation_ReservationId" value="" hidden />
+                    <button type="button" class="btn btn-sm btn-danger" onClick="deleteReservation($('input#modalId_DeleteReservation_ReservationId').val())">@Localizer["Delete"]</button>
+                    <button type="button" class="btn btn-default pull-right" onclick="$('#modal_DeleteReservation').modal('hide');">@Localizer["Cancel"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function deleteReservation(reservationId) {
+        $.ajax({
+            type: "POST",
+            url: "/Reservation/DeleteReservation",
+            data: {
+                "reservationId": reservationId
+            },
+            success: function(response) {
+                if (response === true) {
+                    $('#modal_DeleteReservation').modal('hide');
+                    calendar.refetchEvents();
+                }
+            },
+            error: function(response) {
+                alert(`ERROR: ${response}`);
+            }
+        });
+    }
+
+    function openReservationDeleteModal(reservationId, eventTitle, date) {
+        $('input#modalId_DeleteReservation_ReservationId').val(reservationId);
+        $('#modalText_DeleteReservation_UserName').text(eventTitle);
+        $('#modalText_DeleteReservation_Date').text(date);
+        $('#modal_DeleteReservation').modal('show');
+    }
+</script>

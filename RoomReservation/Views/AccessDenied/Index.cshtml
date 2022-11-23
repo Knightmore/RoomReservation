@@ -1,0 +1,14 @@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="card bg-danger mb-3">
+    <div class="card-header text-center text-white">Not authorized!</div>
+    <div class="card-body bg-light text-center">
+        You don't have the required rights to view this site.
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

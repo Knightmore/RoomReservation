@@ -1,0 +1,51 @@
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject SignInManager<AppUser> SignInManager
+@model RoomReservation.Models.AccountViewModels.LoginViewModel
+@inject IViewLocalizer Localizer
+
+@{
+    ViewData["Title"] = Localizer["Login"];
+}
+
+@if (TempData["success"] != null)
+{
+    <div class="alert alert-success" role="alert">@Html.Raw(Html.TempData["success"])</div>
+}
+
+@if (!SignInManager.IsSignedIn(User))
+{
+    <div class="card bg-secondary mb-3 m-auto" style="max-width: 330px">
+        <div class="card-header text-center text-white">@Localizer["Login"]</div>
+
+        <div class="card-body bg-light text-center">
+            <form method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group mt-3">
+                    <input asp-for="Email" class="form-control" placeholder="@Localizer["Email"]"/>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mt-3">
+                    <input type="password" asp-for="Password" class="form-control" placeholder="@Localizer["Password"]"/>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mt-3">
+                    @Localizer["Remember me"] <input type="checkbox" asp-for="Remember"/>
+                </div>
+
+                <div class="form-group mt-3">
+                    <input type="submit" value="@Localizer["Login"]" class="btn btn-primary"/>
+                    <a class="btn btn-secondary" asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Context.Request.Path">@Localizer["Register"]</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

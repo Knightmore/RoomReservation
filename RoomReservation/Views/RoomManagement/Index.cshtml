@@ -1,0 +1,263 @@
+@inject IConfiguration config
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model Dictionary<int, List<SeatViewModel>>
+@{
+    ViewData["Title"] = "Room Management";
+}
+
+<div class="card bg-secondary mb-3 table-responsive">
+    <div class="card-header text-center text-white table-responsive">
+        <b>@Localizer["Room Management"]</b>
+    </div>
+    <div class="card-body bg-light text-center table-responsive">
+        <div>
+            @if (TempData["success"] != null)
+            {
+                <div class="alert alert-success" role="alert">@Html.Raw(Html.TempData["success"])</div>
+            }
+            @if (TempData["errors"] != null)
+            {
+                <div class="alert alert-danger" role="alert">@Html.Raw(Html.TempData["errors"])</div>
+            }
+            <form asp-action="AddRoom" method="post">
+                @Html.AntiForgeryToken()
+                <div class="input-group mb-3">
+                    <span class="input-group-text">@Localizer["Room"]</span>
+                    <input name="name" type="text" class="form-control" placeholder="@Localizer["Name"]" id="newRoom">
+                    @if (Convert.ToBoolean(config.GetSection("RoomConfig")["UseReservationLimit"]))
+                    {
+                        <span class="input-group-text">@Localizer["Reservation Limit"]</span>
+                        <input name="limit" type="number" class="form-control" placeholder="@Localizer["Limit"]" id="newRoomLimit">
+                    }
+                    else
+                    {
+                        <input name="limit" type="number" class="form-control" id="newRoomLimit" value="0" hidden>
+                    }
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        @Localizer["Add"]
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="accordion" id="accordionRooms">
+            @foreach (KeyValuePair<int, List<SeatViewModel>> room in Model)
+            {
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="@room.Key">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@room.Key" aria-expanded="false" aria-controls="collapse-@room.Key">
+                            @room.Value[0].RoomName (@Localizer["Seats"]: @(room.Value.Count(seat => !string.IsNullOrEmpty(seat.Id))))
+                        </button>
+                    </h2>
+                    <div id="collapse-@room.Key" class="accordion-collapse collapse" aria-labelledby="heading-@room.Key" data-bs-parent="#accordionRooms">
+                        <div class="accordion-body">
+                            <form asp-action="ChangeRoomName" method="post">
+                                @Html.AntiForgeryToken()
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">@Localizer["Name"]</span>
+                                    <input name="id" type="number" class="form-control" id="RoomId-@room.Key" value="@room.Key" hidden />
+                                    <input name="name" type="text" class="form-control" id="RoomName" value="@room.Value[0].RoomName">
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        @Localizer["Update"]
+                                    </button>
+                                </div>
+                            </form>
+                            @if (Convert.ToBoolean(config.GetSection("RoomConfig")["UseReservationLimit"]) && !string.IsNullOrEmpty(room.Value[0].Id))
+                            {
+                                <form asp-action="ChangeLimit" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">@Localizer["Reservation Limit"]</span>
+                                        <input name="id" type="number" class="form-control" id="Limit-RoomId-@room.Key" value="@room.Key" hidden/>
+                                        <input name="limit" type="number" class="form-control" id="RoomLimit-@room.Key" value="@room.Value[0].RoomLimit">
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            @Localizer["Update"]
+                                        </button>
+                                    </div>
+                                </form>
+                            }
+                            <button type="button" class="btn btn-sm btn-danger" onclick="openRoomDeleteModal('@room.Value[0].RoomId', '@room.Value[0].RoomName')">@Localizer["Delete"]</button><br/><br/>
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th scope="col">@Localizer["Name"]</th>
+                                    <th scope="col">@Localizer["Additional Info"]</th>
+                                    <th scope="col"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @{
+                                    var roomId = 0;
+                                    var roomName = "";
+                                }
+                                @foreach (SeatViewModel seat in room.Value)
+                                {
+                                    @if (!string.IsNullOrEmpty(seat.Id))
+                                    {
+                                        <tr>
+                                            <th scope="row">@seat.Title</th>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(seat.ExtraInfo))
+                                                {
+                                                    @seat.ExtraInfo;
+                                                }
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-primary" onclick="openSeatUpdateModal('@seat.Id', '@seat.RoomName', '@seat.Title', '@seat.ExtraInfo')">@Localizer["Update"]</button>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="openSeatDeleteModal('@seat.Id', '@seat.Title', '@seat.RoomName')">@Localizer["Delete"]</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                    roomId = seat.RoomId;
+                                    roomName = seat.RoomName;
+                                }
+                                <tr>
+                                    <form asp-action="AddSeat" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <th scope="row">
+                                            <div class="input-group mb-3">
+                                                <input name="Name" type="text" class="form-control" id="@room.Key-newSeatName" placeholder="@Localizer["New Seat Name"]" style="text-align: center">
+                                            </div>
+                                        </th>
+                                        <td>
+                                            <input name="ExtraInfo" type="text" class="form-control" id="@room.Key-additionalinfo" placeholder="@Localizer["Additional Info"]" style="text-align: center">
+                                        </td>
+                                        <td>
+                                            <input hidden name="RoomId" type="number" value="@roomId"/>
+                                            <input hidden name="RoomName" type="text" value="@roomName"/>
+                                            <button type="submit" class="btn btn-sm btn-primary">
+                                                @Localizer["Add"]
+                                            </button>
+
+                                        </td>
+                                    </form>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal_DeleteSeat">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header with-border">
+                <h3 class="modal-title">@Localizer["Delete Seat"]</h3>
+            </div>
+            <div class="modal-body">
+                <p><em id="modalIdText_DeleteSeat_SeatName"></em> - <em id="modalIdText_DeleteSeat_RoomName"></em></p>
+                @Localizer["Do you really want to delete the seat?"]
+            </div>
+            <div class="modal-footer">
+                <form asp-action="DeleteSeat" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="input-group mb-3">
+                        <input name="id" type="text" class="form-control" id="modalId_DeleteSeat_SeatId" value="" hidden/>
+                        <input name="seatName" type="text" class="form-control" id="modalId_DeleteSeat_SeatName" value="" hidden/>
+                        <input name="roomName" type="text" class="form-control" id="modalId_DeleteSeat_RoomName" value="" hidden/>
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            @Localizer["Delete"]
+                        </button>
+                        <button type="button" class="btn btn-default pull-right" onclick="$('#modal_DeleteSeat').modal('hide');">@Localizer["Cancel"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal_DeleteRoom">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header with-border">
+                <h3 class="modal-title">@Localizer["Delete Room"]</h3>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <em id="modalText_DeleteRoom_RoomName"></em>
+                </p>
+                @Localizer["Do you really want to delete the room?"]
+            </div>
+            <div class="modal-footer">
+                <form asp-action="DeleteRoom" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="input-group mb-3">
+                        <input name="id" type="text" class="form-control" id="modalId_DeleteRoom_RoomId" value="" hidden/>
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            @Localizer["Delete"]
+                        </button>
+                        <button type="button" class="btn btn-default pull-right" onclick="$('#modal_DeleteRoom').modal('hide');">@Localizer["Cancel"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form asp-action="UpdateSeat" method="post">
+    @Html.AntiForgeryToken()
+    <div class="modal fade" id="modal_UpdateSeat">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header with-border">
+                    <h3 class="modal-title">@Localizer["Update Seat"]</h3>
+                </div>
+                <div class="modal-body">
+                    <input name="id" type="text" class="form-control" id="modalId_UpdateSeat_SeatId" value="" hidden/>
+                    <input name="roomName" type="text" class="form-control" id="modalId_UpdateSeat_RoomName" value="" hidden/>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">@Localizer["Name"]</span>
+                        <input name="seatName" type="text" class="form-control" id="modalId_UpdateSeat_SeatName" value="">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">@Localizer["Infos"]</span>
+                        <input name="additionalinfo" type="text" class="form-control" id="modalId_UpdateSeat_AdditionalInfo" value="">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            @Localizer["Update"]
+                        </button>
+                        <button type="button" class="btn btn-default pull-right" onclick="$('#modal_UpdateSeat').modal('hide');">@Localizer["Cancel"]</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+<script>
+    function openSeatDeleteModal(seatId, seatName, roomName) {
+        $('input#modalId_DeleteSeat_SeatId').val(seatId);
+        $('input#modalId_DeleteSeat_SeatName').val(seatName);
+        $('input#modalId_DeleteSeat_RoomName').val(roomName);
+        $('#modalIdText_DeleteSeat_SeatName').text(seatName);
+        $('#modalIdText_DeleteSeat_RoomName').text(roomName);
+        $('#modal_DeleteSeat').modal('show');
+    }
+
+    function openRoomDeleteModal(roomId, roomName) {
+        $('input#modalId_DeleteRoom_RoomId').val(roomId);
+        $('em#modalText_DeleteRoom_RoomName').text(roomName);
+        $('#modal_DeleteRoom').modal('show');
+    }
+
+    function openSeatUpdateModal(seatId, roomName, seatName, additionalInfo) {
+        $('input#modalId_UpdateSeat_SeatId').val(seatId);
+        $('input#modalId_UpdateSeat_RoomName').val(roomName);
+        $('input#modalId_UpdateSeat_SeatName').val(seatName);
+        $('input#modalId_UpdateSeat_AdditionalInfo').val(additionalInfo);
+        $('#modal_UpdateSeat').modal('show');
+    }
+</script>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

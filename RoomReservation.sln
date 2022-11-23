@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.32804.182
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoomReservation", "RoomReservation\RoomReservation.csproj", "{01A1D337-BE5B-4A46-AE3A-D1030F6A8C0E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4AFBEC1C-FA24-4969-A60D-3441CA799BC9}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{01A1D337-BE5B-4A46-AE3A-D1030F6A8C0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01A1D337-BE5B-4A46-AE3A-D1030F6A8C0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01A1D337-BE5B-4A46-AE3A-D1030F6A8C0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01A1D337-BE5B-4A46-AE3A-D1030F6A8C0E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {659F93B6-2206-41CE-B545-2823043D8E6A}
+	EndGlobalSection
+EndGlobal

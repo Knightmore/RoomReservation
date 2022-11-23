@@ -1,0 +1,28 @@
+<header>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <div class="container">
+            @if (!User?.Identity?.IsAuthenticated ?? false)
+            {
+                <a class="navbar-brand" asp-area="" asp-controller="Account" asp-action="Login" asp-route-ReturnUrl="/">Homepage</a>
+            }
+            else
+            {
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Homepage</a>
+            }
+            <div class="navbar d-sm-inline-flex justify-content-end">
+                <div class="form-group mt-3">
+                    @if (User?.Identity?.IsAuthenticated ?? false)
+                    {
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a class="btn btn-sm btn-info text-white" asp-controller="UserManagement" asp-action="Index">User Management</a>
+                            <a class="btn btn-sm btn-info text-white" asp-controller="RoomManagement" asp-action="Index">Room Management</a>
+                        }
+                        <a class="btn btn-sm btn-primary text-white" asp-controller="Account" asp-action="ChangePassword">Change password</a>
+                        <a class="btn btn-sm btn-danger text-white" asp-controller="Account" asp-action="Logout">Logout</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>

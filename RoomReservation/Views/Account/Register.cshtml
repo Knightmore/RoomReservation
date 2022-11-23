@@ -1,0 +1,64 @@
+﻿@inject SignInManager<AppUser> SignInManager
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Mvc.Localization
+@model RoomReservation.Models.AccountViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = Localizer["Registration"];
+}
+
+@if (!SignInManager.IsSignedIn(User))
+{
+    <div class="card bg-secondary mb-3">
+        <div class="card-header text-center text-white">
+            @Localizer["Registration"]
+        </div>
+
+        <div class="card-body bg-light text-center">
+            <form asp-action="Register" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <div class="row">
+                    <div class="col form-group">
+                        <input asp-for="Firstname" class="form-control" placeholder="@Localizer["Firstname"]"/>
+                        <span asp-validation-for="Firstname" class="text-danger"></span>
+                    </div>
+
+                    <div class="col form-group">
+                        <input asp-for="Lastname" class="form-control" placeholder="@Localizer["Lastname"]"/>
+                        <span asp-validation-for="Lastname" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group mt-3">
+                    <input asp-for="Email" class="form-control" placeholder="@Localizer["Email"]"/>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col form-group mt-3">
+                        <input type="password" asp-for="Password" class="form-control" placeholder="@Localizer["Password"]"/>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="col form-group mt-3">
+                        <input type="password" asp-for="PasswordConfirm" class="form-control" placeholder="@Localizer["Confirm Password"]"/>
+                        <span asp-validation-for="PasswordConfirm" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="card-form-group mt-3">
+                    <input type="submit" value="@Localizer["Register"]" class="btn btn-primary"/>
+                    <a class="btn btn-secondary" asp-controller="Home" asp-action="Index">@Localizer["Cancel"]</a>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

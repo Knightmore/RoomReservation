@@ -1,0 +1,99 @@
+@inject UserManager<AppUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Mvc.Localization
+@model AppUser
+@{
+    ViewData["Title"] = Localizer["Update User data"];
+}
+
+<div class="card bg-secondary mb-3">
+    <div class="card-header text-center text-white">
+        <b>@Localizer["Update User Data"]</b>
+    </div>
+    <div class="card-body bg-light text-center">
+        @if (TempData["success"] != null)
+        {
+            <div class="alert alert-success" role="alert">@Html.Raw(Html.TempData["success"])</div>
+        }
+        <div asp-validation-summary="All" class="text-danger"></div>
+        @Html.AntiForgeryToken()
+        <form asp-action="Update" method="post">
+            <div class="input-group mt-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">@Localizer["Id"]</span>
+                </div>
+                <input asp-for="Id" class="form-control" disabled/>
+            </div>
+
+            <div class="input-group mt-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">@Localizer["Firstname"]</span>
+                </div>
+                <input asp-for="FirstName" class="form-control"/>
+                <div class="input-group-prepend">
+                    <span class="input-group-text">@Localizer["Lastname"]</span>
+                </div>
+                <input asp-for="LastName" class="form-control"/>
+            </div>
+
+            <div class="input-group mt-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">@Localizer["Email"]</span>
+                </div>
+                <input asp-for="Email" class="form-control"/>
+            </div>
+
+            <div class="input-group mt-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">@Localizer["Confirmed"]</label>
+                </div>
+                <select asp-for="EmailConfirmed" class="custom-select" id="inputGroupSelect01">
+                    <option value="false" selected>@Localizer["No"]</option>
+                    <option value="true">@Localizer["Yes"]</option>
+                </select>
+
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">@Localizer["Locked"]</label>
+                </div>
+                <select asp-for="LockedOut" class="custom-select" id="inputGroupSelect01">
+                    <option value="false"selected>@Localizer["No"]</option>
+                    <option value="true">@Localizer["Yes"]</option>
+                </select>
+
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">@Localizer["Role"]</label>
+                </div>
+                <select asp-for="Role" class="custom-select" id="inputGroupSelect01">
+                    @foreach (IdentityRole? role in RoleManager.Roles)
+                    {
+                        if (await UserManager.IsInRoleAsync(await UserManager.FindByIdAsync(Model.Id), role.Name))
+                        {
+                            <option value="@role.Id" selected>@role.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@role.Id">@role.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="input-group mt-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">@Localizer["Password"]</span>
+                </div>
+                <input type="password" name="password" class="form-control"/>
+            </div>
+
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-primary">@Localizer["Save"]</button>
+                <a asp-action="Index" class="btn btn-secondary">@Localizer["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

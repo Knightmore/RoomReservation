@@ -1,0 +1,10 @@
+@{
+    object? message = TempData["Alert.Message"] ?? null;
+    object? type = TempData["Alert.Type"] ?? null;
+}
+@if (message != null)
+{
+    <div class="alert alert-@type" role="alert">
+        @message
+    </div>
+}

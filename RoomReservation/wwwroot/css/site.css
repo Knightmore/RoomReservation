@@ -1,0 +1,41 @@
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+html {
+    min-height: 100%;
+    position: relative;
+}
+
+body {
+    margin-bottom: 60px;
+}
+
+.bi {
+    fill: currentColor;
+    vertical-align: -.125em;
+}
+
+.nav-scroller {
+    height: 2.75rem;
+    overflow-y: hidden;
+    position: relative;
+    z-index: 2;
+}
+
+.nav-scroller .nav {
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-wrap: nowrap;
+    margin-top: -1px;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    text-align: center;
+    white-space: nowrap;
+}

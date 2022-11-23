@@ -1,0 +1,48 @@
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@model RoomReservation.Models.AccountViewModels.AppUserViewModel
+@{
+    ViewData["Title"] = Localizer["Create User"];
+}
+
+<div class="card bg-secondary mb-3">
+    <div class="card-header text-center text-white">
+    @Localizer["Create User"]
+    </div>
+
+    <div class="card-body bg-light text-center">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="alert-danger"></div>
+            <input type="hidden" name="Name" value="Dummy"/>
+            <div class="row">
+                <div class="col form-group">
+                    <input asp-for="Firstname" class="form-control" placeholder="@Localizer["Firstname"]"/>
+                </div>
+
+                <div class="col form-group">
+                    <input asp-for="Lastname" class="form-control" placeholder="@Localizer["Lastname"]"/>
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <input asp-for="Email" class="form-control" placeholder="@Localizer["Email"]"/>
+            </div>
+
+            <div class="col form-group mt-3">
+                <input type="password" asp-for="Password" class="form-control" placeholder="@Localizer["Password"]"/>
+            </div>
+
+            <div class="card-form-group mt-3">
+                <input type="submit" value="@Localizer["Create"]" class="btn btn-primary"/>
+                <a class="btn btn-secondary" asp-controller="Home" asp-action="Index">@Localizer["Cancel"]</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

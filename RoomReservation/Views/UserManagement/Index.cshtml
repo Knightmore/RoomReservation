@@ -1,0 +1,103 @@
+@inject UserManager<AppUser> UserManager
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Mvc.Localization
+@model IEnumerable<AppUser>
+@{
+    ViewData["Title"] = Localizer["User Management"];
+}
+
+<div class="card bg-secondary mb-3 table-responsive">
+    <div class="card-header text-center text-white table-responsive">
+        <b>@Localizer["All Users"]</b>
+    </div>
+    <div class="card-body bg-light text-center table-responsive">
+        <a asp-action="Create" class="btn btn-info text-white">@Localizer["Create User"]</a><br/><br/>
+        @if (TempData["success"] != null)
+        {
+            <div class="alert alert-success" role="alert">@Html.Raw(Html.TempData["success"])</div>
+        }
+        <table class="table table-sm table-striped table-bordered">
+            <thead>
+            <tr>
+                <th scope="col">@Localizer["Lastname"]</th>
+                <th scope="col">@Localizer["Firstname"]</th>
+                <th scope="col">@Localizer["Email"]</th>
+                <th scope="col">@Localizer["Role"]</th>
+                <th scope="col">@Localizer["Confirmed"]</th>
+                <th scope="col">@Localizer["Locked"]</th>
+                <th scope="col">@Localizer["Update"]</th>
+                <th scope="col">@Localizer["Delete"]</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (AppUser user in Model)
+            {
+                <tr>
+                    <td>@user.LastName</td>
+                    <td>@user.FirstName</td>
+                    <td>@user.Email</td>
+                    <td>
+                        @string.Join(",", await UserManager.GetRolesAsync(user))
+                    </td>
+                    <td>
+                        <input type="checkbox" @(user.EmailConfirmed ? "checked" : "") disabled/>
+                    </td>
+                    <td>
+                        <input type="checkbox" @(user.LockedOut ? "checked" : "") disabled/>
+                    </td>
+                    <td>
+                        <a class="btn btn-sm btn-primary" asp-action="Update" asp-route-id="@user.Id">
+                            @Localizer["Update"]
+                        </a>
+                    </td>
+                    <td>
+                        @if (!await UserManager.IsInRoleAsync(user, "Admin"))
+                        {
+                            <button type="button" class="btn btn-sm btn-danger" onclick="openDeleteModal('@user.Id', '@user.FirstName', '@user.LastName')">@Localizer["Delete"]</button>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="modal_DeleteUser">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header with-border">
+                <h3 class="modal-title">@Localizer["Delete User"]</h3>
+            </div>
+            <div class="modal-body">
+                <p><em id="modalIdUserLastName"></em>, <em id="modalIdUserFirstName"></em></p>
+                @Localizer["Do you really want to delete the user?"]
+            </div>
+            <div class="modal-footer">
+                <form asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="input-group mb-3">
+                        <input name="id" type="text" class="form-control" id="modalIdUserId" value="" hidden />
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            @Localizer["Delete"]
+                        </button>
+                        <button type="button" class="btn btn-default pull-right" onclick="$('#modal_DeleteUser').modal('hide');">@Localizer["Cancel"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDeleteModal(userId, userFirstName, userLastName) {
+        $('input#modalIdUserId').val(userId);
+        $('#modalIdUserFirstName').text(userFirstName);
+        $('#modalIdUserLastName').text(userLastName);
+        $('#modal_DeleteUser').modal('show');
+    }       
+</script>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

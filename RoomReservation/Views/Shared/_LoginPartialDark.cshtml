@@ -1,0 +1,58 @@
+﻿@using Microsoft.AspNetCore.Builder
+@using Microsoft.AspNetCore.Localization
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.Extensions.Options
+@inject IOptions<RequestLocalizationOptions> LocOptions
+@inject IViewLocalizer Localizer
+​
+@{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var cultureItems = LocOptions.Value.SupportedUICultures
+                                 .Select(c => new SelectListItem { Value = c.Name, Text = c.DisplayName })
+                                 .ToList();
+    var returnUrl = string.IsNullOrEmpty(Context.Request.Path) ? "~/" : $"~{Context.Request.Path.Value}"; 
+}
+
+<header class="p-3 bg-dark">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+            <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                @if (!User?.Identity?.IsAuthenticated ?? false)
+                {
+                    <li>
+                        <a class="nav-link px-2 text-secondary" asp-area="" asp-controller="Account" asp-action="Login" asp-route-ReturnUrl="/">@Localizer["Home"]</a>
+                    </li>
+                }
+                else
+                {
+                    <li>
+                        <a class="nav-link px-2 text-secondary" asp-area="" asp-controller="Home" asp-action="Index">@Localizer["Home"]</a>
+                    </li>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <li>
+                            <a class="nav-link px-2 text-white" asp-controller="UserManagement" asp-action="Index">@Localizer["User Management"]</a>
+                        </li>
+                        <li>
+                            <a class="nav-link px-2 text-white" asp-controller="RoomManagement" asp-action="Index">@Localizer["Room Management"]</a>
+                        </li>
+                    }
+                }
+            </ul>
+
+            <form asp-action="SetLanguage" asp-controller="Language" asp-route-returnUrl="@returnUrl" method="post">
+                <select name="culture" onchange="this.form.submit()" asp-for="@requestCulture.RequestCulture.UICulture.Name" asp-items="cultureItems">
+                </select>
+            </form>
+
+            <div class="text-end">
+                @if (User?.Identity?.IsAuthenticated ?? false)
+                {
+                    <button type="button" class="btn btn-sm btn-primary text-white" onclick="openICalFeedModal()">ICal Feed</button>
+                    <a class="btn btn-sm btn-primary text-white" asp-controller="Account" asp-action="ChangePassword">@Localizer["Change password"]</a>
+                    <a class="btn btn-sm btn-danger text-white" asp-controller="Account" asp-action="Logout">@Localizer["Logout"]</a>
+                }
+            </div>
+        </div>
+    </div>
+</header>

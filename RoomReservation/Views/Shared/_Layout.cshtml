@@ -1,0 +1,93 @@
+﻿@inject UserManager<AppUser> UserManager
+@inject IConfiguration Configuration
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+<!DOCTYPE html>
+
+<!--
+---- This program is free software: you can redistribute it and/or modify
+---- it under the terms of the GNU General Public License as published by
+---- the Free Software Foundation, either version 3 of the License, or
+---- (at your option) any later version.
+---- This program is distributed in the hope that it will be useful,
+---- but WITHOUT ANY WARRANTY; without even the implied warranty of
+---- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+---- GNU General Public License for more details.
+----
+---- You should have received a copy of the GNU General Public License
+---- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+----
+---- Author: Patrick Borger
+---- GitHub: https://github.com/Knightmore
+-->
+
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - RoomReservation</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/lib/fullcalendar-scheduler/dist/css/main.min.css"/>
+    <!--<link rel="stylesheet" href="~/css/site.css"/>-->
+</head>
+
+<body>
+<partial name="_LoginPartialDark"/>
+<br/>
+    <div class="@Configuration.GetSection("LayoutConfig")["BodyType"]">
+
+        <main role="main" class="pb-3">
+        @RenderBody()
+        @if (User?.Identity?.IsAuthenticated ?? false)
+        {
+            <div class="modal fade" id="modal_ICalFeed">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header with-border">
+                            <h3 class="modal-title">ICal Feed Url</h3>
+                        </div>
+                        <div class="modal-body">
+                            <input type="text" class="form-control" id="icalfeedurl" name="icalfeedurl" value="webcal://@Context.Request.Host/ICalFeed/@UserManager.FindByNameAsync(User.Identity.Name).Result.ICalGuid"/>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-right" onclick="$('#modal_ICalFeed').modal('hide');">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function openICalFeedModal() {
+                    $('#modal_ICalFeed').modal('show');
+                }
+            </script>
+        }
+        </main>
+</div>
+
+
+<footer class="container d-flex flex-wrap justify-content-between align-items-center py-3 my-4 footer border-top">
+    <div class="col-md-4 d-flex align-items-center">
+        <span class="mb-3 mb-md-0 text-muted">© 2022 Patrick Borger</span>
+    </div>
+
+    <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+        <li class="ms-3">
+            <a class="text-muted" href="https://github.com/Knightmore/RoomReservation" target="_blank">
+                <img src="~/GitHub-Mark-32px.png"/>
+            </a>
+        </li>
+    </ul>
+</footer>
+<script src="~/lib/popper.js/dist/js/popper.min.js"></script>
+    <script src="~/lib/tooltip.js/dist/js/tooltip.min.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script src="~/lib/fullcalendar-scheduler/dist/js/main.min.js"></script>
+<script src="~/lib/fullcalendar-scheduler/dist/js/locales-all.min.js"></script>
+
+@await RenderSectionAsync("Scripts", false)
+</body>
+</html>
