@@ -129,7 +129,16 @@
   <data name="Unable to load user with ID '{0}'." xml:space="preserve">
     <value>Benutzer mit ID {0} kann nicht geladen werden.</value>
   </data>
-  <data name="Successfully created user {0}, {1}." xml:space="preserve">
-    <value>Benutzer {0}, {1} erfolgreich registriert!</value>
+  <data name="Successfully created user {0}, {1}. An email to confirm your account has been sent." xml:space="preserve">
+    <value>Benutzer {0}, {1} erfolgreich registriert! Eine Mail zur Accountbestätigung wurde versendet.</value>
+  </data>
+  <data name="Confirm your email" xml:space="preserve">
+    <value>Bestätigen Sie Ihre E-Mail</value>
+  </data>
+  <data name="Reset password" xml:space="preserve">
+    <value>Passwort zurücksetzen</value>
+  </data>
+  <data name="Successfully confirmed your email." xml:space="preserve">
+    <value>Ihr E-Mail wurde erfolgreich bestätigt.</value>
   </data>
 </root>

@@ -26,7 +26,7 @@
                 <div class="input-group mb-3">
                     <span class="input-group-text">@Localizer["Room"]</span>
                     <input name="name" type="text" class="form-control" placeholder="@Localizer["Name"]" id="newRoom">
-                    @if (Convert.ToBoolean(config.GetSection("RoomConfig")["UseReservationLimit"]))
+                    @if (Convert.ToBoolean(config.GetSection("RoomSettings")["UseReservationLimit"]))
                     {
                         <span class="input-group-text">@Localizer["Reservation Limit"]</span>
                         <input name="limit" type="number" class="form-control" placeholder="@Localizer["Limit"]" id="newRoomLimit">
@@ -63,7 +63,7 @@
                                     </button>
                                 </div>
                             </form>
-                            @if (Convert.ToBoolean(config.GetSection("RoomConfig")["UseReservationLimit"]) && !string.IsNullOrEmpty(room.Value[0].Id))
+                            @if (Convert.ToBoolean(config.GetSection("RoomSettings")["UseReservationLimit"]) && !string.IsNullOrEmpty(room.Value[0].Id))
                             {
                                 <form asp-action="ChangeLimit" method="post">
                                     @Html.AntiForgeryToken()

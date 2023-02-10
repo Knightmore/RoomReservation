@@ -8,7 +8,7 @@
 ---- it under the terms of the GNU General Public License as published by
 ---- the Free Software Foundation, either version 3 of the License, or
 ---- (at your option) any later version.
----- This program is distributed in the hope that it will be useful,
+---- This program is distributed in the hope that it will be useful, 
 ---- but WITHOUT ANY WARRANTY; without even the implied warranty of
 ---- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ---- GNU General Public License for more details.
@@ -35,7 +35,7 @@
 <body>
 <partial name="_LoginPartialDark"/>
 <br/>
-    <div class="@Configuration.GetSection("LayoutConfig")["BodyType"]">
+    <div class="@Configuration.GetSection("LayoutSettings")["BodyType"]">
 
         <main role="main" class="pb-3">
         @RenderBody()
@@ -69,7 +69,7 @@
 
 <footer class="container d-flex flex-wrap justify-content-between align-items-center py-3 my-4 footer border-top">
     <div class="col-md-4 d-flex align-items-center">
-        <span class="mb-3 mb-md-0 text-muted">© 2022 Patrick Borger</span>
+        <span class="mb-3 mb-md-0 text-muted">© 2022-2023 Patrick Borger</span>
     </div>
 
     <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">

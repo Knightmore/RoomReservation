@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Ical.Net" Version="4.2.0" />
+    <PackageReference Include="MailKit" Version="3.4.3" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.9" />
@@ -30,6 +31,12 @@
 
   <ItemGroup>
     <EmbeddedResource Update="Resources\Controllers\RoomManagementController.de.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Views\Account\ResetPasswordConfirmation.de.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Views\Account\ResetPassword.de.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>

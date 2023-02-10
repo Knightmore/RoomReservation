@@ -1,4 +1,4 @@
-#region Copyright © 2022 Patrick Borger - https: // github.com/Knightmore
+#region Copyright © 2023 Patrick Borger - https: //github.com/Knightmore
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,15 +15,15 @@
 // 
 // Author: Patrick Borger
 // GitHub: https://github.com/Knightmore
-// Created: 21.09.2022
-// Modified: 07.10.2022
+// Created: 21.10.2022
+// Modified: 19.01.2023
 
 #endregion
 
-using System.Reflection;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
+using RoomReservation.Configuration;
 using RoomReservation.Data;
 using RoomReservation.IdentityPolicy;
 using RoomReservation.Services;
@@ -40,19 +40,22 @@ public class Program
 
         builder.Services.AddTransient<IUserValidator<AppUser>, CustomEmailPolicy>();
         builder.Services.AddDbContext<ApplicationDbContext>(options => { options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")); });
-        builder.Services.AddIdentity<AppUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders().AddErrorDescriber<LocalizedIdentityErrorDescriber>();
+        builder.Services.AddIdentity<AppUser, IdentityRole>()
+               .AddEntityFrameworkStores<ApplicationDbContext>()
+               .AddDefaultTokenProviders()
+               .AddErrorDescriber<LocalizedIdentityErrorDescriber>();
 
         builder.Services.Configure<IdentityOptions>(options =>
                                                     {
                                                         options.User.RequireUniqueEmail        = true;
                                                         options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ, ";
 
-                                                        options.SignIn.RequireConfirmedAccount  = bool.Parse(builder.Configuration["AccountConfig:SignIn:RequireConfirmedAccount"]);
-                                                        options.Password.RequiredLength         = int.Parse(builder.Configuration["AccountConfig:Passwords:RequiredLength"]);
-                                                        options.Password.RequireLowercase       = bool.Parse(builder.Configuration["AccountConfig:Passwords:RequiredLowercase"]);
-                                                        options.Password.RequireUppercase       = bool.Parse(builder.Configuration["AccountConfig:Passwords:RequireUppercase"]);
-                                                        options.Password.RequireDigit           = bool.Parse(builder.Configuration["AccountConfig:Passwords:RequireDigit"]);
-                                                        options.Password.RequireNonAlphanumeric = bool.Parse(builder.Configuration["AccountConfig:Passwords:RequireNonAlphanumeric"]);
+                                                        options.SignIn.RequireConfirmedAccount  = bool.Parse(builder.Configuration["AccountSettings:SignIn:RequireConfirmedAccount"]);
+                                                        options.Password.RequiredLength         = int.Parse(builder.Configuration["AccountSettings:Passwords:RequiredLength"]);
+                                                        options.Password.RequireLowercase       = bool.Parse(builder.Configuration["AccountSettings:Passwords:RequiredLowercase"]);
+                                                        options.Password.RequireUppercase       = bool.Parse(builder.Configuration["AccountSettings:Passwords:RequireUppercase"]);
+                                                        options.Password.RequireDigit           = bool.Parse(builder.Configuration["AccountSettings:Passwords:RequireDigit"]);
+                                                        options.Password.RequireNonAlphanumeric = bool.Parse(builder.Configuration["AccountSettings:Passwords:RequireNonAlphanumeric"]);
 
                                                         options.Lockout.DefaultLockoutTimeSpan  = TimeSpan.FromMinutes(5);
                                                         options.Lockout.MaxFailedAccessAttempts = 3;
@@ -72,12 +75,23 @@ public class Program
                                                     });
 
         builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
-        builder.Services.AddControllersWithViews().AddViewLocalization(LanguageViewLocationExpanderFormat.SubFolder).AddDataAnnotationsLocalization();
+        builder.Services.AddControllersWithViews()
+               .AddViewLocalization(LanguageViewLocationExpanderFormat.SubFolder)
+               .AddDataAnnotationsLocalization();
         builder.Services.Configure<RequestLocalizationOptions>(options =>
                                                                {
                                                                    var supportedCultures = new[] { "en", "de" };
-                                                                   options.SetDefaultCulture(supportedCultures[0]).AddSupportedCultures(supportedCultures).AddSupportedUICultures(supportedCultures);
+                                                                   options.SetDefaultCulture(supportedCultures[0])
+                                                                          .AddSupportedCultures(supportedCultures)
+                                                                          .AddSupportedUICultures(supportedCultures);
                                                                });
+
+        builder.Services.Configure<DataProtectionTokenProviderOptions>(opts => opts.TokenLifespan = TimeSpan.FromHours(3));
+
+        builder.Services.Configure<MailSettings>(builder.Configuration.GetSection(nameof(MailSettings)));
+        builder.Services.AddTransient<IMailSender, MailSender>();
+
+        builder.Services.Configure<ReservationSettings>(builder.Configuration.GetSection(nameof(ReservationSettings)));
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
@@ -86,12 +100,14 @@ public class Program
 
         WebApplication app = builder.Build();
 
-        var supportedCultures   = new[] { "en", "de" };
-        var localizationOptions = new RequestLocalizationOptions().SetDefaultCulture(supportedCultures[0]).AddSupportedCultures(supportedCultures).AddSupportedUICultures(supportedCultures);
+        var supportedCultures = new[] { "en", "de" };
+        RequestLocalizationOptions localizationOptions = new RequestLocalizationOptions().SetDefaultCulture(supportedCultures[0])
+                                                                                         .AddSupportedCultures(supportedCultures)
+                                                                                         .AddSupportedUICultures(supportedCultures);
 
         app.UseRequestLocalization(localizationOptions);
 
-        using (var scope = app.Services.CreateScope())
+        using (IServiceScope scope = app.Services.CreateScope())
         {
             var dataContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             dataContext.Database.Migrate();

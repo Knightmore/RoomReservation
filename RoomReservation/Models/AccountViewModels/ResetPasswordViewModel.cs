@@ -15,27 +15,23 @@
 // 
 // Author: Patrick Borger
 // GitHub: https://github.com/Knightmore
-// Created: 07.10.2022
+// Created: 17.01.2023
 // Modified: 19.01.2023
 
 #endregion
 
-using System.ComponentModel.DataAnnotations.Schema;
+namespace RoomReservation.Models.AccountViewModels;
 
-namespace RoomReservation.Models;
-
-public class Reservation
+public class ResetPasswordViewModel
 {
-    [Column(TypeName = "Date")] public DateTime Start { get; set; }
+    public class ResetPassword
+    {
+        [Required] public string Password { get; set; }
 
-    [ForeignKey("Seat")] public string ResourceId { get; set; }
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string PasswordConfirm { get; set; }
 
-    // TODO: Get rid of title and pull it through Uid (Lastname, Firstname)
-    public                         string Title  { get; set; }
-    public                         string Uid    { get; set; }
-    [ForeignKey("AppUser")] public string UserId { get; set; }
-
-
-    public Seat    Seat    { get; set; }
-    public AppUser AppUser { get; set; }
+        public string Email { get; set; }
+        public string Token { get; set; }
+    }
 }

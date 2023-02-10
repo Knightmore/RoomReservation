@@ -15,27 +15,22 @@
 // 
 // Author: Patrick Borger
 // GitHub: https://github.com/Knightmore
-// Created: 07.10.2022
+// Created: 17.01.2023
 // Modified: 19.01.2023
 
 #endregion
 
-using System.ComponentModel.DataAnnotations.Schema;
+namespace RoomReservation.Configuration;
 
-namespace RoomReservation.Models;
-
-public class Reservation
+public class MailSettings
 {
-    [Column(TypeName = "Date")] public DateTime Start { get; set; }
-
-    [ForeignKey("Seat")] public string ResourceId { get; set; }
-
-    // TODO: Get rid of title and pull it through Uid (Lastname, Firstname)
-    public                         string Title  { get; set; }
-    public                         string Uid    { get; set; }
-    [ForeignKey("AppUser")] public string UserId { get; set; }
-
-
-    public Seat    Seat    { get; set; }
-    public AppUser AppUser { get; set; }
+    public string? From         { get; set; }
+    public string? DisplayName  { get; set; }
+    public string? UserName     { get; set; }
+    public bool    JSONPassword { get; set; }
+    public string? Password     { get; set; }
+    public string? Server       { get; set; }
+    public bool    UseSSL       { get; set; }
+    public bool    UseStartTls  { get; set; }
+    public int     Port         { get; set; }
 }

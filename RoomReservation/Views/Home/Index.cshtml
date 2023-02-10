@@ -1,6 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Localization
 @using Microsoft.AspNetCore.Mvc.Localization
 @using System.Security.Claims
+
 @inject IConfiguration Configuration
 @inject IViewLocalizer Localizer
 
@@ -21,6 +22,11 @@
 {
     <div id="SuccessMessage" style="color: green">@Html.Encode(Html.TempData["success"])</div>
 }
+@if (TempData["error"] != null)
+{
+    <div id="ErrorMessage" style="color: red">@Html.Encode(Html.TempData["error"])</div>
+}
+
 <div class="card bg-secondary mb-3">
     <div class="card-header text-center text-white">
         <b>@Localizer["Reservations"]</b>
@@ -43,18 +49,18 @@
                         themeSystem: 'bootstrap5',
                         schedulerLicenseKey: "GPL-My-Project-Is-Open-Source",
                         locale: "@requestCulture.RequestCulture.UICulture.Name",
-                        timeZone: "@Configuration.GetSection("ReservationConfig")["TimeZone"]",
-                        initialView: "@Configuration.GetSection("ReservationConfig")["InitialView"]",
-                        weekends: @Configuration.GetSection("ReservationConfig")["Weekends"].ToLower(),
-                        dayHeaders: @Configuration.GetSection("ReservationConfig")["DayHeaders"].ToLower(),
+                        timeZone: "@Configuration.GetSection("ReservationSettings")["TimeZone"]",
+                        initialView: "@Configuration.GetSection("ReservationSettings")["InitialView"]",
+                        weekends: @Configuration.GetSection("ReservationSettings")["Weekends"].ToLower(),
+                        dayHeaders: @Configuration.GetSection("ReservationSettings")["DayHeaders"].ToLower(),
                         resourceAreaWidth: "15%",
                         slotDuration: { days: 1 },
                         slotLabelFormat: [
                             { month: "long", year: "numeric" }, { weekday: "long", day: "numeric" }
                         ],
                         aspectRatio: 1.5,
-                        expandRows: @Configuration.GetSection("ReservationConfig")["ExpandRows"].ToLower(),
-                        height: "@Configuration.GetSection("ReservationConfig")["Height"]",
+                        expandRows: @Configuration.GetSection("ReservationSettings")["ExpandRows"].ToLower(),
+                        height: "@Configuration.GetSection("ReservationSettings")["Height"]",
                         headerToolbar: {
                             left: 'today prev,next',
                             center: 'title',
@@ -110,7 +116,7 @@
                             }
                         },
                         resourceGroupField: "Name",
-                        resourcesInitiallyExpanded: @Configuration.GetSection("ReservationConfig")["ResourcesInitiallyExpanded"].ToLower(),
+                        resourcesInitiallyExpanded: @Configuration.GetSection("ReservationSettings")["ResourcesInitiallyExpanded"].ToLower(),
                         resourceAreaHeaderContent: "@Localizer["Rooms"]",
                         resources: {
                             url: '/Reservation/FetchRooms',
@@ -142,18 +148,15 @@
                             failure: function() {
                                 alert('There was an error while fetching events!');
                             }
-                        },
-                        eventRender: function(event, element) {
-                            element.find('.fc-event-title-container').setAttribute("class", "text-center");
                         }
                     });
 
                 function refresh() {
                     calendar.refetchEvents();
-                    setTimeout(refresh, @Configuration.GetSection("ReservationConfig")["RefreshAfterInMs"]);
+                    setTimeout(refresh, @Configuration.GetSection("ReservationSettings")["RefreshAfterInMs"]);
                 }
 
-                if (@Configuration.GetSection("ReservationConfig")["AutomaticRefresh"].ToLower() || (@User.IsInRole("Admin").ToString().ToLower() && @Configuration.GetSection("ReservationConfig")["AutomaticRefreshAdminsOnly"].ToLower())) {
+                if (@Configuration.GetSection("ReservationSettings")["AutomaticRefresh"].ToLower() || (@User.IsInRole("Admin").ToString().ToLower() && @Configuration.GetSection("ReservationSettings")["AutomaticRefreshAdminsOnly"].ToLower())) {
                     refresh();
                 }
                 return calendar;

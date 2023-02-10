@@ -1,0 +1,20 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    ViewData["Title"] = Localizer["Registration Closed"];
+}
+
+<div class="card bg-secondary mb-3 m-auto" style="max-width: 330px">
+    <div class="card-header text-center text-white">@Localizer["Registration Closed"]</div>
+
+    <div class="card-body bg-light text-center">
+            <div class="form-group mt-3">
+                @Localizer["The registration has been closed."]
+            </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

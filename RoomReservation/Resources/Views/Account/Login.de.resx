@@ -132,4 +132,7 @@
   <data name="Remember me" xml:space="preserve">
     <value>Angemeldet bleiben</value>
   </data>
+  <data name="Forgot Password?" xml:space="preserve">
+    <value>Passwort vergessen?</value>
+  </data>
 </root>

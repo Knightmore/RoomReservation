@@ -41,8 +41,8 @@
             </ul>
 
             <form asp-action="SetLanguage" asp-controller="Language" asp-route-returnUrl="@returnUrl" method="post">
-                <select name="culture" onchange="this.form.submit()" asp-for="@requestCulture.RequestCulture.UICulture.Name" asp-items="cultureItems">
-                </select>
+                    <select name="culture" onchange="this.form.submit()" asp-for="@requestCulture.RequestCulture.UICulture.Name" asp-items="cultureItems">
+                    </select>
             </form>
 
             <div class="text-end">

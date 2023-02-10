@@ -1,4 +1,4 @@
-﻿#region Copyright © 2022 Patrick Borger - https: //github.com/Knightmore
+﻿#region Copyright © 2023 Patrick Borger - https: //github.com/Knightmore
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 // Author: Patrick Borger
 // GitHub: https://github.com/Knightmore
 // Created: 07.11.2022
-// Modified: 23.11.2022
+// Modified: 19.01.2023
 
 #endregion
 
@@ -45,7 +45,7 @@ public class ICalFeedController : DatabaseController
     public ActionResult<string> Index(string icalguid)
     {
         var calendar = new Calendar();
-        if (icalguid == _configuration.GetSection("iCalConfig")["GUIDForAll"])
+        if (icalguid == _configuration.GetSection("iCalSettings")["GUIDForAll"])
         {
             var reservations = DbContext.Reservations.Join(DbContext.Seats, reservation => reservation.ResourceId, seat => seat.id, (reservation, seat) => new { reservation, seat })
                                         .Join(DbContext.Rooms, rs => rs.seat.RoomId, room => room.RoomId, (rs,                                    room) => new { rs, room })

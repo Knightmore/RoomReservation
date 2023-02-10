@@ -1,4 +1,4 @@
-﻿#region Copyright © 2022 Patrick Borger - https: // github.com/Knightmore
+﻿#region Copyright © 2023 Patrick Borger - https: //github.com/Knightmore
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // 
 // Author: Patrick Borger
 // GitHub: https://github.com/Knightmore
-// Created: 21.09.2022
-// Modified: 07.10.2022
+// Created: 07.10.2022
+// Modified: 19.01.2023
 
 #endregion
 
@@ -26,14 +26,20 @@ public class CustomEmailPolicy : UserValidator<AppUser>
 {
     public override async Task<IdentityResult> ValidateAsync(UserManager<AppUser> manager, AppUser user)
     {
-        IConfigurationRoot? configuration = new ConfigurationBuilder().AddJsonFile("customsettings.json").Build();
-        string?             mailConfig    = configuration.GetSection("AccountConfig")["AllowedMails"];
-        string[]            allowedMails  = mailConfig.Split(",");
-        IdentityResult      result        = await base.ValidateAsync(manager, user);
-        List<IdentityError> errors        = result.Succeeded ? new List<IdentityError>() : result.Errors.ToList();
+        IConfigurationRoot? configuration = new ConfigurationBuilder().AddJsonFile("customsettings.json")
+                                                                      .Build();
+        string?        mailConfig   = configuration.GetSection("AccountSettings")["AllowedMails"];
+        string[]       allowedMails = mailConfig.Split(",");
+        IdentityResult result       = await base.ValidateAsync(manager, user);
+        List<IdentityError> errors = result.Succeeded
+                                         ? new List<IdentityError>()
+                                         : result.Errors.ToList();
 
-        if (!allowedMails.Any(x => user.Email.ToLower().EndsWith(x.ToLower())))
+        if (!allowedMails.Any(x => user.Email.ToLower()
+                                       .EndsWith(x.ToLower())))
             errors.Add(new IdentityError { Description = "Your email address provider is not allowed." });
-        return errors.Count == 0 ? IdentityResult.Success : IdentityResult.Failed(errors.ToArray());
+        return errors.Count == 0
+                   ? IdentityResult.Success
+                   : IdentityResult.Failed(errors.ToArray());
     }
 }

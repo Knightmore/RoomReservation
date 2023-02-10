@@ -1,5 +1,5 @@
 {
-  "ReservationConfig": {
+  "ReservationSettings": {
     "TimeZone": "Europe/Berlin",
     "ResourcesInitiallyExpanded": false,
     "InitialView": "resourceTimelineWeek",
@@ -10,9 +10,15 @@
     "AutomaticRefresh": false,
     "AutomaticRefreshAdminsOnly": false,
     "RefreshAfterInMs": 5000,
-    "AllowMultiplePerDay": false
+    "AllowMultiplePerDay": false,
+    "SlotLabelFormat": {
+      "Weekday": "short",
+      "Day": "numeric",
+      "Month": "short",
+      "Year": "numeric"
+    } 
   },
-  "AccountConfig": {
+  "AccountSettings": {
     "AllowedMails": "Admin.de,Member.de",
     "Passwords": {
       "RequiredLength": 8,
@@ -23,15 +29,27 @@
     },
     "SignIn": {
       "RequireConfirmedAccount": true
-    } 
+    },
+    "RegistrationOpen": true 
   },
-  "RoomConfig": {
+  "RoomSettings": {
     "UseReservationLimit": true
   },
-  "LayoutConfig": {
+  "LayoutSettings": {
     "BodyType": "container"
   },
-  "ICalConfig": {
+  "ICalSettings": {
     "GUIDForAll": "12345678-9012-3456-7890-123456789012"
+  },
+  "MailSettings": {
+    "From": "from@domain.com",
+    "DisplayName": "Example Mailer",
+    "UserName": "from@domain.com",
+    "JSONPassword": true,
+    "Password": "smtppassword",
+    "Server": "smtp.server.com",
+    "UseSSL": false,
+    "UseStartTls": true,
+    "Port": 587
   } 
 }

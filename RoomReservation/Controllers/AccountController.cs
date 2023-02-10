@@ -1,4 +1,4 @@
-﻿#region Copyright © 2022 Patrick Borger - https: //github.com/Knightmore
+﻿#region Copyright © 2023 Patrick Borger - https: //github.com/Knightmore
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,12 +16,13 @@
 // Author: Patrick Borger
 // GitHub: https://github.com/Knightmore
 // Created: 07.10.2022
-// Modified: 17.10.2022
+// Modified: 02.02.2023
 
 #endregion
 
 using Microsoft.Extensions.Localization;
 using RoomReservation.Models.AccountViewModels;
+using RoomReservation.Services;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace RoomReservation.Controllers;
@@ -29,15 +30,19 @@ namespace RoomReservation.Controllers;
 [Authorize]
 public class AccountController : DatabaseController
 {
+    private readonly IConfiguration                      _configuration;
     private readonly IStringLocalizer<AccountController> _localizer;
+    private readonly IMailSender                         _mailSender;
     private readonly SignInManager<AppUser>              _signInManager;
     private readonly UserManager<AppUser>                _userManager;
 
-    public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signinManager, IStringLocalizer<AccountController> localizer)
+    public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signinManager, IStringLocalizer<AccountController> localizer, IConfiguration configuration, IMailSender mailSender)
     {
         _userManager   = userManager;
         _signInManager = signinManager;
         _localizer     = localizer;
+        _configuration = configuration;
+        _mailSender    = mailSender;
     }
 
     [AllowAnonymous]
@@ -91,8 +96,17 @@ public class AccountController : DatabaseController
     public IActionResult Register()
     {
         if (User.Identity is { IsAuthenticated: false })
-            return View();
+            if (Convert.ToBoolean(_configuration.GetSection("AccountSettings")["RegistrationOpen"]))
+                return View();
+            else
+                return RedirectToAction("RegistrationClosed");
         return Redirect("~/");
+    }
+
+    [AllowAnonymous]
+    public IActionResult RegistrationClosed()
+    {
+        return View();
     }
 
     [AllowAnonymous]
@@ -110,7 +124,8 @@ public class AccountController : DatabaseController
                           Email          = viewModel.Email,
                           Role           = "Member",
                           EmailConfirmed = false,
-                          ICalGuid       = Guid.NewGuid().ToString()
+                          ICalGuid = Guid.NewGuid()
+                                         .ToString()
                       };
         IdentityResult result = await _userManager.CreateAsync(newUser, viewModel.Password);
 
@@ -119,7 +134,16 @@ public class AccountController : DatabaseController
             result = await _userManager.AddToRoleAsync(newUser, "Member");
             if (result.Succeeded)
             {
-                TempData["success"] = _localizer["Successfully created user {0}, {1}.", viewModel.Lastname, viewModel.Firstname].ToString();
+                string? token            = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
+                string? confirmationLink = Url.Action("ConfirmEmail", "Account", new { token, email = newUser.Email }, Request.Scheme);
+                bool    response         = await _mailSender.SendMailAsync(newUser.Email, _localizer["Confirm your email"], _localizer["Confirm your email"], confirmationLink);
+
+                if (response)
+                    TempData["success"] = _localizer["Successfully created user {0}, {1}. An email to confirm your account has been sent.", viewModel.Lastname, viewModel.Firstname]
+                       .ToString();
+                else
+                    TempData["error"] = _localizer["There was a problem to create your account! Please try again later or contact your administrator."]
+                       .ToString();
                 return Redirect("~/");
             }
 
@@ -132,6 +156,18 @@ public class AccountController : DatabaseController
             ModelState.AddModelError(string.Empty, error.Description);
 
         return View(viewModel);
+    }
+
+    [AllowAnonymous]
+    public async Task<IActionResult> ConfirmEmail(string token, string email)
+    {
+        AppUser? user = await _userManager.FindByEmailAsync(email);
+        if (user == null) return View("Error");
+
+        IdentityResult? result = await _userManager.ConfirmEmailAsync(user, token);
+        return View(result.Succeeded
+                        ? "ConfirmEmail"
+                        : "Error");
     }
 
     public IActionResult ChangePassword()
@@ -159,6 +195,71 @@ public class AccountController : DatabaseController
         await _signInManager.RefreshSignInAsync(user);
 
         return Redirect("~/");
+    }
+
+    [AllowAnonymous]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([Required] string email)
+    {
+        if (!ModelState.IsValid)
+            return View(email);
+
+        AppUser? user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+            return RedirectToAction(nameof(ForgotPasswordConfirmation));
+
+        string? token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        string? link  = Url.Action("ResetPassword", "Account", new { token, email = user.Email }, Request.Scheme);
+
+        _ = await _mailSender.SendMailAsync(user.Email, _localizer["Reset password"], _localizer["Reset password"], link);
+
+        return RedirectToAction("ForgotPasswordConfirmation");
+    }
+
+    [AllowAnonymous]
+    public IActionResult ForgotPasswordConfirmation()
+    {
+        return View();
+    }
+
+    [AllowAnonymous]
+    public IActionResult ResetPassword(string token, string email)
+    {
+        var model = new ResetPasswordViewModel.ResetPassword { Token = token, Email = email };
+        return View(model);
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel.ResetPassword resetPassword)
+    {
+        if (!ModelState.IsValid)
+            return View(resetPassword);
+
+        AppUser? user = await _userManager.FindByEmailAsync(resetPassword.Email);
+        if (user == null)
+            RedirectToAction("ResetPasswordConfirmation");
+
+        IdentityResult? resetPassResult = await _userManager.ResetPasswordAsync(user, resetPassword.Token, resetPassword.Password);
+        if (!resetPassResult.Succeeded)
+        {
+            foreach (IdentityError? error in resetPassResult.Errors)
+                ModelState.AddModelError(error.Code, error.Description);
+            return View();
+        }
+
+        return RedirectToAction("ResetPasswordConfirmation");
+    }
+
+    public IActionResult ResetPasswordConfirmation()
+    {
+        return View();
     }
 
     public async Task<IActionResult> Logout()

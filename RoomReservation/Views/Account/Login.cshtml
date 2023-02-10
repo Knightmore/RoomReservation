@@ -31,6 +31,7 @@
                     <input type="password" asp-for="Password" class="form-control" placeholder="@Localizer["Password"]"/>
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
+                <a class="nav-link px-2 text-primary" asp-area="" asp-controller="Account" asp-action="ForgotPassword" asp-route-ReturnUrl="/">@Localizer["Forgot Password?"]</a>
 
                 <div class="form-group mt-3">
                     @Localizer["Remember me"] <input type="checkbox" asp-for="Remember"/>

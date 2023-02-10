@@ -1,0 +1,20 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    ViewData["Title"] = Localizer["Confirm your email"];
+}
+
+<div class="card bg-secondary mb-3 m-auto" style="max-width: 330px">
+    <div class="card-header text-center text-white">@Localizer["Confirm your email"]</div>
+
+    <div class="card-body bg-light text-center">
+            <div class="form-group mt-3">
+                @Localizer["Successfully confirmed your email."]
+            </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

@@ -1,4 +1,4 @@
-﻿#region Copyright © 2022 Patrick Borger - https: //github.com/Knightmore
+﻿#region Copyright © 2023 Patrick Borger - https: //github.com/Knightmore
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,20 +16,20 @@
 // Author: Patrick Borger
 // GitHub: https://github.com/Knightmore
 // Created: 07.10.2022
-// Modified: 07.11.2022
+// Modified: 19.01.2023
 
 #endregion
 
-using Microsoft.Extensions.Localization;
-using RoomReservation.Models;
-using RoomReservation.Models.AccountViewModels;
 using System.Text.Encodings.Web;
+using Microsoft.Extensions.Localization;
+using RoomReservation.Models.AccountViewModels;
 
 namespace RoomReservation.Controllers;
 
 public class UserManagementController : Controller
 {
-    private readonly IPasswordHasher<AppUser> _passwordHasher;
+    private readonly IStringLocalizer<UserManagementController> _localizer;
+    private readonly IPasswordHasher<AppUser>                   _passwordHasher;
 
     private readonly IPasswordValidator<AppUser> _passwordValidator;
 
@@ -37,8 +37,7 @@ public class UserManagementController : Controller
 
     private readonly UserManager<AppUser> _userManager;
 
-    private readonly IUserValidator<AppUser>                    _userValidator;
-    private readonly IStringLocalizer<UserManagementController> _localizer;
+    private readonly IUserValidator<AppUser> _userValidator;
 
     public UserManagementController(UserManager<AppUser> usrManager, IPasswordHasher<AppUser> passwordHasher, IPasswordValidator<AppUser> passwordValidator, IUserValidator<AppUser> userValidator, RoleManager<IdentityRole> roleManager, IStringLocalizer<UserManagementController> localizer)
     {
@@ -53,7 +52,8 @@ public class UserManagementController : Controller
     [Authorize(Roles = "Admin")]
     public IActionResult Index()
     {
-        return View(_userManager.Users.Where(user => user.Id != "0").OrderBy(user => user.LastName));
+        return View(_userManager.Users.Where(user => user.Id != "0")
+                                .OrderBy(user => user.LastName));
     }
 
     [Authorize(Roles = "Admin")]
@@ -70,13 +70,15 @@ public class UserManagementController : Controller
         if (!ModelState.IsValid) return View(user);
         var appUser = new AppUser
                       {
-                          UserName       = $"{user.Lastname}, {user.Firstname}",
-                          FirstName      = user.Firstname,
-                          LastName       = user.Lastname,
-                          Email          = user.Email,
-                          Role           = _roleManager.FindByNameAsync("Member").Result.Id,
+                          UserName  = $"{user.Lastname}, {user.Firstname}",
+                          FirstName = user.Firstname,
+                          LastName  = user.Lastname,
+                          Email     = user.Email,
+                          Role = _roleManager.FindByNameAsync("Member")
+                                             .Result.Id,
                           EmailConfirmed = false,
-                          ICalGuid       = Guid.NewGuid().ToString()
+                          ICalGuid = Guid.NewGuid()
+                                         .ToString()
                       };
 
         IdentityResult result = await _userManager.CreateAsync(appUser, user.Password);
@@ -86,7 +88,8 @@ public class UserManagementController : Controller
             result = await _userManager.AddToRoleAsync(appUser, "Member");
             if (result.Succeeded)
             {
-                TempData["success"] = HtmlEncoder.Default.Encode(_localizer["User {0}, {1} successfully created!", appUser.LastName, appUser.FirstName].ToString());
+                TempData["success"] = HtmlEncoder.Default.Encode(_localizer["User {0}, {1} successfully created!", appUser.LastName, appUser.FirstName]
+                                                                    .ToString());
                 return RedirectToAction("Index");
             }
         }
@@ -116,7 +119,13 @@ public class UserManagementController : Controller
 
         if (!string.IsNullOrEmpty(firstname)) user.FirstName = firstname;
         if (!string.IsNullOrEmpty(lastname)) user.LastName   = lastname;
-        IdentityResult validEmail                            = default!;
+        if (!string.IsNullOrEmpty(firstname) && !string.IsNullOrEmpty(lastname))
+        {
+            user.UserName           = $"{lastname}, {firstname}";
+            user.NormalizedUserName = $"{lastname.ToUpper()}, {firstname.ToUpper()}";
+        }
+
+        IdentityResult validEmail = default!;
         if (!string.IsNullOrEmpty(email))
         {
             user.Email = email;
@@ -144,12 +153,15 @@ public class UserManagementController : Controller
         {
             user.EmailConfirmed = emailConfirmed;
             user.LockedOut      = lockedOut;
-            user.LockoutEnd     = lockedOut ? DateTimeOffset.MaxValue : DateTimeOffset.UtcNow.AddSeconds(-1);
+            user.LockoutEnd = lockedOut
+                                  ? DateTimeOffset.MaxValue
+                                  : DateTimeOffset.UtcNow.AddSeconds(-1);
 
             IdentityResult removedRoles = await _userManager.RemoveFromRolesAsync(user, await _userManager.GetRolesAsync(user));
             if (removedRoles.Succeeded)
             {
-                IdentityResult addedToRole = await _userManager.AddToRoleAsync(user, _roleManager.FindByIdAsync(role).Result.Name);
+                IdentityResult addedToRole = await _userManager.AddToRoleAsync(user, _roleManager.FindByIdAsync(role)
+                                                                                                 .Result.Name);
                 if (addedToRole.Succeeded)
                 {
                     user.Role = role;
@@ -170,7 +182,8 @@ public class UserManagementController : Controller
         IdentityResult result = await _userManager.UpdateAsync(user);
         if (result.Succeeded)
         {
-            TempData["success"] = HtmlEncoder.Default.Encode(_localizer["User {0}, {1} successfully updated!", user.LastName, user.FirstName].ToString());
+            TempData["success"] = HtmlEncoder.Default.Encode(_localizer["User {0}, {1} successfully updated!", user.LastName, user.FirstName]
+                                                                .ToString());
             return View(user);
         }
 
@@ -190,7 +203,8 @@ public class UserManagementController : Controller
             IdentityResult result = await _userManager.DeleteAsync(user);
             if (result.Succeeded)
             {
-                TempData["success"] = HtmlEncoder.Default.Encode(_localizer["User {0}, {1} successfully deleted!", user.LastName, user.FirstName].ToString());
+                TempData["success"] = HtmlEncoder.Default.Encode(_localizer["User {0}, {1} successfully deleted!", user.LastName, user.FirstName]
+                                                                    .ToString());
                 return RedirectToAction("Index");
             }
 
