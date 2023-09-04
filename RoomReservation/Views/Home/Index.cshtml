@@ -140,6 +140,13 @@
                                 });
                             }
                         },
+                        resourceGroupLabelContent: function (info) {
+                            let ImageElement = document.createElement('b');
+                            ImageElement.innerHTML = info.groupValue;
+                            ImageElement.setAttribute('onclick', `openImage('${info.groupValue}')`)
+                            let arrayOfDomNodes = [ImageElement]
+                            return { domNodes: arrayOfDomNodes }
+                        },
                         eventInteractive: true,
                         events: {
                             url: '/Reservation/FetchEvents',
@@ -217,5 +224,29 @@
         $('#modalText_DeleteReservation_UserName').text(eventTitle);
         $('#modalText_DeleteReservation_Date').text(date);
         $('#modal_DeleteReservation').modal('show');
+    }
+</script>
+
+                
+<div class="modal" id="viewImg" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="imgViewer" style="overflow-x: scroll;">
+          
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openImage(roomName){
+        $('#imgViewer').html('').append('<img alt="Top-down '+roomName+'" src="@Configuration.GetSection("RoomSettings")["RoomLinkPath"]' + roomName + '.jpg">')
+        $('#viewImg').modal('show')     
     }
 </script>

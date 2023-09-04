@@ -33,7 +33,8 @@
     "RegistrationOpen": true 
   },
   "RoomSettings": {
-    "UseReservationLimit": true
+    "UseReservationLimit": true,
+    "RoomLinkPath":  "https://www.RoomReservationPlaceholder.de/images/"
   },
   "LayoutSettings": {
     "BodyType": "container"
